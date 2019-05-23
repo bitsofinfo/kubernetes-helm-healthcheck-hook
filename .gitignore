@@ -1,7 +1,8 @@
 *db.json
 *.yaml
 *.yml
-*checksdb.yml
+*checksdb.yaml
+*slackconfig.yaml
 
 *.ds_store
 

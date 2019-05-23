@@ -12,13 +12,15 @@ import socket
 import base64
 import time
 import random
+import copy
 import json
+import requests
 import pprint
 import argparse
 import sys
 import yaml
 from multiprocessing import Pool
-from jinja2 import Template
+from jinja2 import Template, Environment
 
 # De-deuplicates a list of objects, where the value is the same
 def dedup(list_of_objects):
@@ -345,7 +347,8 @@ def execute(target_root_url, \
             sleep_seconds, \
             any_check_fail_exit_code, \
             ports_qualifier, \
-            verbose_output):
+            verbose_output, \
+            slack_config_filename):
 
     # thread pool to exec tasks
     exec_pool = None
@@ -419,9 +422,10 @@ def execute(target_root_url, \
             if not check_def['result']['success']:
                 has_failures = True
 
+        finalized_checks_db_for_output = copy.deepcopy(finalized_checks_db)
 
         # simplify output if not in verbose mode
-        for check_def in finalized_checks_db:
+        for check_def in finalized_checks_db_for_output:
             if not verbose_output:
                 check_def.pop("curl",None)
                 check_def.pop("classifiers",None)
@@ -449,9 +453,9 @@ def execute(target_root_url, \
         if output_filename is not None:
             with open(output_filename, 'w') as outfile:
                 if output_format == 'json':
-                    json.dump(finalized_checks_db, outfile, indent=4)
+                    json.dump(finalized_checks_db_for_output, outfile, indent=4)
                 else:
-                    yaml.dump(finalized_checks_db, outfile, default_flow_style=False)
+                    yaml.dump(finalized_checks_db_for_output, outfile, default_flow_style=False)
 
                 logging.debug("Output written to: " + output_filename)
 
@@ -460,11 +464,40 @@ def execute(target_root_url, \
         if stdout_result:
             print()
             if output_format == 'json':
-                print(json.dumps(finalized_checks_db,indent=4))
+                print(json.dumps(finalized_checks_db_for_output,indent=4))
             else:
-                yaml.dump(finalized_checks_db, outfile, default_flow_style=False)
+                yaml.dump(finalized_checks_db_for_output, outfile, default_flow_style=False)
 
         print()
+
+        # alert
+
+        # Create an Jinja2 Environment
+        # and register a new filter for the exec_objectpath methods
+        env = Environment()
+
+        # Create out standard header text and attachment
+        slack_config = {}
+        with open(slack_config_filename) as f:
+            slack_config = yaml.load(f, Loader=yaml.FullLoader)
+
+        slack_template = env.from_string(slack_config['template'])
+        jinja2context = { 'url':target_root_url, 'result':{'success':(True if not has_failures else False)}}
+        rendered_template = slack_template.render(jinja2context)
+
+        # Convert to an object we can now append trigger results to
+        slack_data = json.loads(rendered_template)
+
+        logging.debug("SlackReactor: Sending to slack....")
+        response = requests.post(
+            slack_config['webhook_url'], data=json.dumps(slack_data),
+            headers={'Content-Type': 'application/json'}
+        )
+        if response.status_code != 200:
+            raise ValueError(
+                'Request to slack returned an error %s, the response is:\n%s'
+                % (response.status_code, response.text)
+            )
 
         # any failures? exit according to code
         if has_failures and any_check_fail_exit_code:
@@ -493,7 +526,9 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--target-root-url', dest='target_root_url', \
         help="Target root URL where all checks defined in --checksdb-filename will execute against. Each check 'path' defined in --checksdb-filename will be APPENDED to this value.")
     parser.add_argument('-i', '--checksdb-filename', dest='checksdb_filename', default="checksdb.yaml", \
-        help="Filename (YAML or JSON) of checks database that will be executed against the --target-root-url, default: 'checksdb.yml'")
+        help="Filename (YAML) of checks database that will be executed against the --target-root-url, default: 'checksdb.yaml'")
+    parser.add_argument('-a', '--slack-config-filename', dest='slack_config_filename', default="slackconfig.yaml", \
+        help="Filename (YAML) containing the slack alert configuration. default: 'slackconfig.yaml'")
     parser.add_argument('-o', '--output-filename', dest='output_filename', default=None, \
         help="Output filename, default: None")
     parser.add_argument('-f', '--output-format', dest='output_format', default="json", \
@@ -538,4 +573,5 @@ if __name__ == '__main__':
 
     execute(args.target_root_url,args.checksdb_filename,args.output_filename, \
         args.output_format,max_retries,args.job_name,args.threads,args.stdout_result, \
-        args.sleep_seconds,args.any_check_fail_exit_code,ports_qualifier_arr,args.verbose_output)
+        args.sleep_seconds,args.any_check_fail_exit_code,ports_qualifier_arr,args.verbose_output, \
+        args.slack_config_filename)

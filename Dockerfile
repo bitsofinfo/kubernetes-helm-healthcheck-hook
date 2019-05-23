@@ -1,6 +1,6 @@
 FROM python:3.7.3-alpine
 
-# install the analyzer under /usr/local/bin
+# install the checker under /usr/local/bin
 RUN apk update ; \
     apk upgrade ; \
     apk add git ; \
@@ -14,4 +14,6 @@ RUN apk update ; \
     rm -rf /var/cache/apk/*
 
 # required modules
-RUN pip install --upgrade pip jinja2 pyyaml python-dateutil 
+RUN pip install --upgrade pip jinja2 pyyaml python-dateutil
+
+ENV PATH="/usr/local/bin/;$PATH"
