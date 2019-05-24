@@ -1,8 +1,3 @@
-*db.json
-*.yaml
-*.yml
-*checksdb.yaml
-*slackconfig.yaml
 
 *.ds_store
 

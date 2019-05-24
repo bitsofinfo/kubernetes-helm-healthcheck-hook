@@ -14,6 +14,6 @@ RUN apk update ; \
     rm -rf /var/cache/apk/*
 
 # required modules
-RUN pip install --upgrade pip jinja2 pyyaml python-dateutil
+RUN pip install --upgrade pip jinja2 pyyaml python-dateutil requests
 
 ENV PATH="/usr/local/bin/;$PATH"

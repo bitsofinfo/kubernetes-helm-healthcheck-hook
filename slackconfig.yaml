@@ -1,0 +1,51 @@
+#----------------------------------------------------
+# This file is consumed by the --slack-config-filename
+# argument. Here you define one or more alert configs
+# each separate alert identified another YAML array element
+#----------------------------------------------------
+
+- name: "Deployment Result"  # the name of the alert
+
+  # Leverages a webhook url.
+  # Example hook posts to: https://bitsofinfo.slack.com/messages/CE46Z3TJA/
+  # the #bitsofinfo-dev channel
+  webhook_url: https://hooks.slack.com/services/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
+
+  # Jinja2 template that is provided the following `context` object
+  # who has the following structure. You can reference any variables in
+  # this object in your template. Your template should return a JSON
+  # document for a Slack Incoming webhook POST body:
+  # https://api.slack.com/incoming-webhooks
+  template: >
+    {
+      "text":"*Deployment result: {{ target_root_url }}*",
+      "attachments": [
+          {
+            "fields": [
+              {
+                "title":"Healthcheck result",
+                "value":"{{ overall_result }}",
+                "short":true
+              }
+            ]
+          }
+      ]
+    }
+
+- name: "Some secondary alert"  # the name of the alert
+  webhook_url: https://hooks.slack.com/services/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
+  template: >
+    {
+      "text":"*My secondary alert: {{ target_root_url }}*",
+      "attachments": [
+          {
+            "fields": [
+              {
+                "title":"Healthcheck result",
+                "value":"{{ overall_result }}",
+                "short":true
+              }
+            ]
+          }
+      ]
+    }

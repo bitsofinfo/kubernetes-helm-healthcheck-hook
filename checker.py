@@ -198,7 +198,8 @@ def execServiceCheck(config):
     try:
         retries = hc['retries']
         if max_retries is not None:
-            retries = int(max_retries)
+            if retries is not None and int(max_retries) < retries:
+                retries = int(max_retries)
 
         headers = {}
         curl_header = ""
@@ -341,20 +342,25 @@ def execute(target_root_url, \
             output_filename, \
             output_format,\
             maximum_retries, \
-            job_name, \
+            check_name, \
             threads, \
             stdout_result, \
             sleep_seconds, \
             any_check_fail_exit_code, \
-            ports_qualifier, \
             verbose_output, \
-            slack_config_filename):
+            slack_config_filename, \
+            tags_qualifier, \
+            tags_disqualifier, \
+            debug_slack_jinja2_context, \
+            all_args):
+
+    # if any checks failed
+    has_check_failures = False
 
     # thread pool to exec tasks
     exec_pool = None
 
     try:
-
         # seed max retries override
         max_retries = int(maximum_retries)
 
@@ -387,12 +393,22 @@ def execute(target_root_url, \
             hc_executable = True
             no_match_reason = None
 
-            # check port qualifiers
-            if ports_qualifier is not None and 'ports' in checkdef:
-                for port_qualifier in ports_qualifier:
-                    if int(port_qualifier) not in checkdef['ports']:
+            # check tags qualifiers
+            if tags_qualifier is not None and 'tags' not in checkdef:
+                hc_executable = False
+                no_match_reason = "'tags_qualifier' present but check has no 'tags' attribute"
+            if tags_qualifier is not None and 'tags' in checkdef:
+                for tag_qualifier in tags_qualifier:
+                    if tag_qualifier not in checkdef['tags']:
                         hc_executable = False
-                        no_match_reason = "No 'ports' matching in provided 'ports_qualifier'"
+                        no_match_reason = "No 'tags' matched provided 'tags_qualifier'"
+
+            # check tags disqualifiers
+            if tags_disqualifier is not None and 'tags' in checkdef:
+                for tag_disqualifier in tags_disqualifier:
+                    if tag_disqualifier     in checkdef['tags']:
+                        hc_executable = False
+                        no_match_reason = "One or more 'tags' matched provided 'tag_disqualifier'"
 
             if hc_executable:
                 executable_service_checks.append({'target_root_url':target_root_url, \
@@ -405,6 +421,8 @@ def execute(target_root_url, \
                                       "attempts":0, \
                                       "skipped":True, \
                                       "msg":"does not match " + str(no_match_reason)}
+
+                # only include skipped on verbose
                 if verbose_output:
                     finalized_checks_db.append(checkdef)
 
@@ -414,13 +432,13 @@ def execute(target_root_url, \
         executable_service_checks = exec_pool.map(execServiceCheck, \
                                                   executable_service_checks)
 
-        has_failures = False
+
         for config in executable_service_checks:
             check_def = config['check_def']
 
             finalized_checks_db.append(check_def)
             if not check_def['result']['success']:
-                has_failures = True
+                has_check_failures = True
 
         finalized_checks_db_for_output = copy.deepcopy(finalized_checks_db)
 
@@ -429,6 +447,7 @@ def execute(target_root_url, \
             if not verbose_output:
                 check_def.pop("curl",None)
                 check_def.pop("classifiers",None)
+                check_def.pop("path",None)
                 check_def.pop("tags",None)
                 check_def.pop("body",None)
                 check_def.pop("headers",None)
@@ -448,7 +467,6 @@ def execute(target_root_url, \
                 cd_result.pop("distinct_failure_errors",None)
 
 
-
         # to json
         if output_filename is not None:
             with open(output_filename, 'w') as outfile:
@@ -466,48 +484,69 @@ def execute(target_root_url, \
             if output_format == 'json':
                 print(json.dumps(finalized_checks_db_for_output,indent=4))
             else:
-                yaml.dump(finalized_checks_db_for_output, outfile, default_flow_style=False)
+                print(yaml.dump(finalized_checks_db_for_output, default_flow_style=False))
+            print()
 
-        print()
 
-        # alert
+        #-------------------------------------
+        # Slack Alert
+        #-------------------------------------
 
         # Create an Jinja2 Environment
         # and register a new filter for the exec_objectpath methods
         env = Environment()
 
         # Create out standard header text and attachment
-        slack_config = {}
-        with open(slack_config_filename) as f:
-            slack_config = yaml.load(f, Loader=yaml.FullLoader)
+        slack_alert_configs = {}
 
-        slack_template = env.from_string(slack_config['template'])
-        jinja2context = { 'url':target_root_url, 'result':{'success':(True if not has_failures else False)}}
-        rendered_template = slack_template.render(jinja2context)
+        try:
+            with open(slack_config_filename) as f:
+                slack_alert_configs = yaml.load(f, Loader=yaml.FullLoader)
 
-        # Convert to an object we can now append trigger results to
-        slack_data = json.loads(rendered_template)
+            for slack_alert_config in slack_alert_configs:
+                try:
+                    slack_jinja2_context = {
+                        'check_name':check_name,
+                        'overall_result': (True if not has_check_failures else False),
+                        'target_root_url':target_root_url,
+                        'checks':finalized_checks_db,
+                        'checker_args':vars(all_args),
+                        'slack_alert_config':slack_alert_config
+                    }
 
-        logging.debug("SlackReactor: Sending to slack....")
-        response = requests.post(
-            slack_config['webhook_url'], data=json.dumps(slack_data),
-            headers={'Content-Type': 'application/json'}
-        )
-        if response.status_code != 200:
-            raise ValueError(
-                'Request to slack returned an error %s, the response is:\n%s'
-                % (response.status_code, response.text)
-            )
+                    if debug_slack_jinja2_context:
+                        print(json.dumps(slack_jinja2_context,indent=2))
 
-        # any failures? exit according to code
-        if has_failures and any_check_fail_exit_code:
-            sys.exit(any_check_fail_exit_code)
+                    slack_template = env.from_string(slack_alert_config['template'])
+                    rendered_template = slack_template.render(slack_jinja2_context)
 
+                    # Convert to an object we can now append trigger results to
+                    slack_data = json.loads(rendered_template)
 
-    # end main wrapping try
+                    logging.debug("Sending Slack alert [%s]",slack_alert_config['name'])
+                    response = requests.post(
+                        slack_alert_config['webhook_url'], data=json.dumps(slack_data),
+                        headers={'Content-Type': 'application/json'}
+                    )
+                    if response.status_code != 200:
+                        raise ValueError(
+                            'Request to slack returned an error %s, the response is:\n%s'
+                            % (response.status_code, response.text)
+                        )
+                # end per slack alert config loop
+                except Exception as e:
+                    logging.exception("Error in slack alert processing of slack_alert_config: " + slack_alert_config['name'])
+
+        # end main slack alerting block
+        except Exception as e:
+            logging.exception("Error in slack alert processing")
+
+    # end main method try block
     except Exception as e:
         logging.exception("Error in checker.execute()")
+        has_check_failures = True # force a failure if we have a program failure
 
+    # always cleanup!
     finally:
         try:
             if exec_pool is not None:
@@ -518,46 +557,63 @@ def execute(target_root_url, \
         except:
             logging.exception("Error terminating, closing pool")
 
+        # any failures? exit according to code
+        if has_check_failures and any_check_fail_exit_code:
+            sys.exit(any_check_fail_exit_code)
+
 ###########################
 # Main program
 ##########################
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--target-root-url', dest='target_root_url', \
-        help="Target root URL where all checks defined in --checksdb-filename will execute against. Each check 'path' defined in --checksdb-filename will be APPENDED to this value.")
-    parser.add_argument('-i', '--checksdb-filename', dest='checksdb_filename', default="checksdb.yaml", \
-        help="Filename (YAML) of checks database that will be executed against the --target-root-url, default: 'checksdb.yaml'")
-    parser.add_argument('-a', '--slack-config-filename', dest='slack_config_filename', default="slackconfig.yaml", \
-        help="Filename (YAML) containing the slack alert configuration. default: 'slackconfig.yaml'")
+        help="Required Target root URL (i.e. http[s]://whatever.com) where all checks defined in --checksdb-filename will execute against. Each check 'path' defined in --checksdb-filename will be APPENDED to this value.")
+    parser.add_argument('-i', '--checksdb-filename', dest='checksdb_filename', \
+        help="Required: Filename (YAML) of checks database that will be executed against the --target-root-url, default: 'checksdb.yaml'")
+    parser.add_argument('-a', '--slack-config-filename', dest='slack_config_filename', default=None, \
+        help="Optional: Filename (YAML) containing the slack alert configuration. default: None")
     parser.add_argument('-o', '--output-filename', dest='output_filename', default=None, \
-        help="Output filename, default: None")
+        help="Optional: The result of the checks will be written to this output filename, default: None")
     parser.add_argument('-f', '--output-format', dest='output_format', default="json", \
-        help="json or yaml, default 'json'")
+        help="Output format: json or yaml, default 'json'")
     parser.add_argument('-v', '--verbose-output', action='store_true', default=False, \
-        help="Output check result details with extra verbosity")
-    parser.add_argument('-p', '--ports-qualifier', dest='ports_qualifier', default=None, \
-        help="Optional comma delimited list of port qualifiers to limit checks in --checksdb-filename, i.e. if specified only checks defined with 'ports' matching one or more of these will be executed")
-    parser.add_argument('-r', '--max-retries', dest='max_retries', default=3, \
-        help="maximum retries per check, overrides service-state service check configs, default 3")
-    parser.add_argument('-n', '--job-name', dest='job_name', default="no --job-name specified", \
-        help="descriptive name for this execution job, default 'no --job-name specified'")
+        help="The result output will be in verbose mode, containing much more detail helpful in debugging. Default OFF")
+    parser.add_argument('-q', '--tags-qualifier', dest='tags_qualifier', default=None, \
+        help="Optional, only include 'checks' loaded in --checksdb-filename whos 'tags' attribute contains ONE or MORE values this comma delimited list of tags")
+    parser.add_argument('-d', '--tags-disqualifier', dest='tags_disqualifier', default=None, \
+        help="Inverse of --tags-qualifier. Exclude 'checks' loaded in --checksdb-filename whos 'tags' attribute contains ONE or MORE values this comma delimited list of tags")
+    parser.add_argument('-r', '--max-retries', dest='max_retries', default=100, \
+        help="Maximum retries per check, overrides those provided in --checksdb-filename, default 100")
+    parser.add_argument('-n', '--check-name', dest='check_name', default="no --check-name specified", \
+        help="Optional descriptive name for this invocation, default 'no --job-name specified'")
     parser.add_argument('-t', '--threads', dest='threads', default=1, \
-        help="max threads for processing checks, default 30, higher = faster completion, adjust as necessary to avoid DOSing...")
+        help="max threads for processing checks listed in --checksdb-filename, default 1, higher = faster completion, adjust as necessary to avoid DOSing...")
     parser.add_argument('-s', '--sleep-seconds', dest='sleep_seconds', default=0, \
-        help="The max amount of time to sleep between all attempts for each service check; if > 0, the actual sleep will be a random time from 0 to this value. Default 0")
+        help="The MAX amount of time to sleep between all attempts for each service check; if > 0, the actual sleep will be a RANDOM time from 0 to this value. Default 0")
     parser.add_argument('-l', '--log-level', dest='log_level', default="DEBUG", \
         help="log level, default DEBUG ")
     parser.add_argument('-b', '--log-file', dest='log_file', default=None, \
         help="Path to log file, default None, STDOUT")
     parser.add_argument('-z', '--stdout-result', action='store_true', default=True, \
-        help="print results to STDOUT in addition to --output-filename on disk (if specified)")
+        help="Print check results to STDOUT in addition to --output-filename on disk (if specified)")
     parser.add_argument('-x', '--any-check-fail-exit-code', dest='any_check_fail_exit_code', default=1, \
-        help="If any check defined in --checksdb-filename fails, force an exit code. Default 1")
+        help="If ANY single check defined in --checksdb-filename fails or a general program error occurs, force a sys.exit(your-provided-exit-code). If all checks are successful the exit code will be 0. Default 1")
+    parser.add_argument('-D', '--debug-slack-jinja2-context', action='store_true', default=False, \
+        help="Dumps a JSON debug output of the jinja2 object passed to the Slack jinja2 template")
+
 
     args = parser.parse_args()
 
+
+    dump_help = False
     if args.target_root_url is None:
         print('--target-root-url is required')
+        dump_help = True
+    if args.checksdb_filename is None:
+        print('--checksdb-filename is required')
+        dump_help = True
+    if dump_help:
+        parser.print_help()
         sys.exit(1)
 
     logging.basicConfig(level=logging.getLevelName(args.log_level),
@@ -567,11 +623,28 @@ if __name__ == '__main__':
 
     max_retries = int(args.max_retries)
 
-    ports_qualifier_arr = []
-    if args.ports_qualifier is not None:
-        ports_qualifier_arr = args.ports_qualifier.split(",")
+    tags_qualifier_arr = []
+    if args.tags_qualifier is not None:
+        tags_qualifier_arr = args.tags_qualifier.split(",")
 
-    execute(args.target_root_url,args.checksdb_filename,args.output_filename, \
-        args.output_format,max_retries,args.job_name,args.threads,args.stdout_result, \
-        args.sleep_seconds,args.any_check_fail_exit_code,ports_qualifier_arr,args.verbose_output, \
-        args.slack_config_filename)
+    tags_disqualifier_arr = []
+    if args.tags_disqualifier is not None:
+        tags_disqualifier_arr = args.tags_disqualifier.split(",")
+
+    # invoke!
+    execute(args.target_root_url, \
+            args.checksdb_filename, \
+            args.output_filename, \
+            args.output_format, \
+            max_retries, \
+            args.check_name, \
+            args.threads, \
+            args.stdout_result, \
+            args.sleep_seconds, \
+            args.any_check_fail_exit_code, \
+            args.verbose_output, \
+            args.slack_config_filename, \
+            tags_qualifier_arr, \
+            tags_disqualifier_arr, \
+            args.debug_slack_jinja2_context, \
+            args)

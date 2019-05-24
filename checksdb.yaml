@@ -1,0 +1,39 @@
+- path: "/status/200"
+  tags: ["health"]
+  method: "GET"
+  timeout: 5
+  retries: 3
+
+- path: "/status/500"
+  tags: ["health"]
+  method: "GET"
+  timeout: 5
+  retries: 3
+  is_healthy:
+    response_codes: [500]
+    body_evaluator:
+      type: "contains"
+      value: "\"status\":500"
+
+- path: "/status/500"
+  tags: ["fail"]
+  method: "GET"
+  timeout: 5
+  retries: 3
+  is_healthy:
+    response_codes: [200]
+
+- path: "/post"
+  tags: ["post"]
+  method: "POST"
+  headers:
+    - "Content-Type: text/xml"
+  body: >
+    <xml>test</xml>
+  is_healthy:
+    response_codes: [200]
+    body_evaluator:
+      type: "contains"
+      value: "<xml>test</xml>"
+  timeout: 5
+  retries: 3
