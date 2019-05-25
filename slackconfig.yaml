@@ -6,6 +6,13 @@
 
 - name: "Deployment Result"  # the name of the alert
 
+  # OPTIONAL: Jinja2 template that if provided must return:
+  # - 1 (alert will execute)
+  # - 0 (alert will NOT execute)
+  #
+  # You can use this for example to only fire alerts on failures
+  alert_condition: "{{ '1' if not overall_result else '1' }}" # here we fire no matter what
+
   # Leverages a webhook url.
   # Example hook posts to: https://bitsofinfo.slack.com/messages/CE46Z3TJA/
   # the #bitsofinfo-dev channel
@@ -56,11 +63,12 @@
       ]
     }
 
-- name: "Some secondary alert"  # the name of the alert
+- name: "Failure only alert"  # the name of the alert
+  alert_condition: "{{ '1' if not overall_result else '0' }}" # here we fire only on failures
   webhook_url: https://hooks.slack.com/services/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
   template: >
     {
-      "text":"*My secondary alert: {{ target_root_url }}*",
+      "text":"*Failure only alert: {{ target_root_url }}*",
       "attachments": [
           {
             "fields": [

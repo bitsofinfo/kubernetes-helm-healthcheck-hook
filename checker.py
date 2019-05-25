@@ -517,6 +517,21 @@ def execute(target_root_url, \
                     if debug_slack_jinja2_context:
                         print(json.dumps(slack_jinja2_context,indent=2))
 
+                    # alert condition?
+                    can_send_alert = True
+                    if 'alert_condition' in slack_alert_config and slack_alert_config['alert_condition']:
+                        t = Template(slack_alert_config["alert_condition"])
+                        x = t.render(slack_jinja2_context)
+                        if '1' in x:
+                            can_send_alert = True
+                        else:
+                            can_send_alert = False
+
+                    if not can_send_alert:
+                        logging.info("Skipping sending alert '%s', alert_condition returned 0 (zero)",slack_alert_config['name'])
+                        continue
+
+                    # ok we can proceed, render the template
                     slack_template = env.from_string(slack_alert_config['template'])
                     rendered_template = slack_template.render(slack_jinja2_context)
 
@@ -559,10 +574,10 @@ def execute(target_root_url, \
 
         # any failures? exit according to code
         if has_check_failures and any_check_fail_exit_code:
-            logging.error("Execution complete. has_check_failures=True, one or more checks FAILED, exiting with exit code: " + any_check_fail_exit_code)
+            logging.error("Execution complete. has_check_failures=True, one or more checks FAILED, exiting with exit code: %s", any_check_fail_exit_code)
             sys.exit(any_check_fail_exit_code)
         else:
-            logging.info("Execution complete. has_check_failures="+has_check_failures)
+            logging.info("Execution complete. has_check_failures=%s",has_check_failures)
 
 ###########################
 # Main program
