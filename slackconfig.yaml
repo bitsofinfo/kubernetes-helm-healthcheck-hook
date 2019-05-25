@@ -21,7 +21,13 @@
       "text":"*Deployment result: {{ target_root_url }}*",
       "attachments": [
           {
+            "color": "{{ 'good' if overall_result else 'danger' }}",
             "fields": [
+              {
+                "title":"Check name",
+                "value":"{{ check_name }}",
+                "short":true
+              },
               {
                 "title":"Healthcheck result",
                 "value":"{{ overall_result }}",
@@ -29,6 +35,24 @@
               }
             ]
           }
+
+          {% for check in checks %}
+            ,{
+              "color": "{{ 'good' if check.result.success else 'danger' }}",
+              "fields": [
+                {
+                  "title":"Url",
+                  "value":"{{ check.method }} {{ check.url }}",
+                  "short":true
+                },
+                {
+                  "title":"Success?",
+                  "value":"{{ check.result.success }} {{ check.result.code }}",
+                  "short":true
+                }
+              ]
+            }
+        {% endfor %}
       ]
     }
 

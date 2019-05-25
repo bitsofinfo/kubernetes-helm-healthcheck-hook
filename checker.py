@@ -125,7 +125,7 @@ def processResponse(check_def,
 
             elif success_body_evaluator['type'] == "jinja2":
                 t = Template(success_body_evaluator["template"])
-                x = t.render(response_data=response_data,response_code=response.getcode())
+                x = t.render(check_def=check_def,response_data=response_data,response_code=response.getcode())
                 if '1' in x:
                     response_is_healthy = True
                 else:
@@ -559,7 +559,10 @@ def execute(target_root_url, \
 
         # any failures? exit according to code
         if has_check_failures and any_check_fail_exit_code:
+            logging.error("Execution complete. has_check_failures=True, one or more checks FAILED, exiting with exit code: " + any_check_fail_exit_code)
             sys.exit(any_check_fail_exit_code)
+        else:
+            logging.info("Execution complete. has_check_failures="+has_check_failures)
 
 ###########################
 # Main program

@@ -37,3 +37,18 @@
       value: "<xml>test</xml>"
   timeout: 5
   retries: 3
+
+- path: "/post"
+  tags: ["post"]
+  method: "POST"
+  headers:
+    - "Content-Type: text/xml"
+  body: >
+    <xml>test</xml>
+  is_healthy:
+    response_codes: [200]
+    body_evaluator:
+      type: "jinja2"
+      template: "{% if check_def is defined and response_data is defined and check_def['body']|replace('\n','')|string in response_data['as_string'] and response_code == 200 %}1{% else %}0{% endif %}"
+  timeout: 5
+  retries: 3
