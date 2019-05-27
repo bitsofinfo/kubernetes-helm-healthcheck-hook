@@ -19,7 +19,7 @@
   webhook_url: https://hooks.slack.com/services/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
 
   # Jinja2 template that is provided a `context` object
-  # who has a structure you can see in the example-slack-jinja2-context.json
+  # who has a structure you can see in the below file:
   # https://github.com/bitsofinfo/kubernetes-helm-healthcheck-hook/blob/master/example/slack-jinja2-context.json
   #
   # You can reference any variables in
