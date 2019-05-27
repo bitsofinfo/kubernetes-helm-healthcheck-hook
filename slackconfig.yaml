@@ -10,7 +10,7 @@
   # - 1 (alert will execute)
   # - 0 (alert will NOT execute)
   #
-  # You can use this for example to only fire alerts on failures
+  # For example, You could use this to only fire alerts on failures
   alert_condition: "{{ '1' if not overall_result else '1' }}" # here we fire no matter what
 
   # Leverages a webhook url.

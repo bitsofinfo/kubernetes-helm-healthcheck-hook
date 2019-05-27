@@ -1,3 +1,57 @@
+#--------------------------------
+# checksdb.yaml EXAMPLE
+#
+# The checksdb YAML file can declare
+# one or more "checks" to be executed
+# against the --target-root-url
+#
+# See below for examples
+#--------------------------------
+
+  # REQUIRED: Each check REQUIRES a path
+- path: "/post"
+  # OPTIONAL: tags can be used to filter which checks get run
+  tags: ["post"]
+  # REQUIRED: http method to use
+  method: "POST"
+  # OPTIONAL: you can also customize the headers to send
+  headers:
+    - "Content-Type: text/xml"
+  # OPTIONAL:  you can also customize the body to send (on POSTS, PUTS, PATCHES) etc
+  body: >
+    <xml>test</xml>
+  # OPTIONAL: By default we look for 200
+  # otherwise you can control what constitutes the check being "healthy"
+  is_healthy:
+    response_codes: [200] # one or more response codes that = healthy, ANY must match
+    # body evaluator interprets the response body.
+    # there are 2 types 'contains' or 'jinja2'
+    body_evaluator:
+      # the Jinja2 evaluator evaluates the 'template'
+      # and looks for a 1 (success) or 0 (fail)
+      # to determine the healthy state. The template is passed a jinja2 context
+      # with the following properties
+      # {
+      #   check_def: {the current checkdef object being executed from your checks database}
+      #   response_code: "code",
+      #   response_data: {
+      #       as_string: "response data as string",
+      #       as_object: {response data as object if parsable as JSON}
+      #   }
+      # }
+      type: "jinja2"
+      template: "{% if check_def is defined and response_data is defined and check_def['body']|replace('\n','')|string in response_data['as_string'] and response_code == 200 %}1{% else %}0{% endif %}"
+
+      # You can also do a type of "contains"
+      #type: "contains" # the 'contains' evaluator does a simple string match
+      #value: "\"status\":200"
+
+  # timeout for a response
+  timeout: 5
+  # nunber of retries
+  retries: 3
+
+
 - path: "/status/200"
   tags: ["health"]
   method: "GET"
@@ -11,8 +65,8 @@
   retries: 3
   is_healthy:
     response_codes: [500]
-    body_evaluator:
-      type: "contains"
+    body_evaluator: # body evaluator interprets the response body.
+      type: "contains" # the 'contains' evaluator does a simple string match
       value: "\"status\":500"
 
 - path: "/status/500"
@@ -35,20 +89,5 @@
     body_evaluator:
       type: "contains"
       value: "<xml>test</xml>"
-  timeout: 5
-  retries: 3
-
-- path: "/post"
-  tags: ["post"]
-  method: "POST"
-  headers:
-    - "Content-Type: text/xml"
-  body: >
-    <xml>test</xml>
-  is_healthy:
-    response_codes: [200]
-    body_evaluator:
-      type: "jinja2"
-      template: "{% if check_def is defined and response_data is defined and check_def['body']|replace('\n','')|string in response_data['as_string'] and response_code == 200 %}1{% else %}0{% endif %}"
   timeout: 5
   retries: 3
