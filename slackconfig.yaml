@@ -18,8 +18,11 @@
   # the #bitsofinfo-dev channel
   webhook_url: https://hooks.slack.com/services/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
 
-  # Jinja2 template that is provided the following `context` object
-  # who has the following structure. You can reference any variables in
+  # Jinja2 template that is provided a `context` object
+  # who has a structure you can see in the example-slack-jinja2-context.json
+  # https://github.com/bitsofinfo/kubernetes-helm-healthcheck-hook/blob/master/example-slack-jinja2-context.json
+  #
+  # You can reference any variables in
   # this object in your template. Your template should return a JSON
   # document for a Slack Incoming webhook POST body:
   # https://api.slack.com/incoming-webhooks

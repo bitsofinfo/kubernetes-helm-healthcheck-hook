@@ -5,6 +5,9 @@
 # one or more "checks" to be executed
 # against the --target-root-url
 #
+# Each item below is a "check_def" short
+# for "check definition"
+#
 # See below for examples
 #--------------------------------
 
@@ -32,7 +35,7 @@
       # to determine the healthy state. The template is passed a jinja2 context
       # with the following properties
       # {
-      #   check_def: {the current checkdef object being executed from your checks database}
+      #   check_def: { the current checkdef object being executed from your checksdb YAML }
       #   response_code: "code",
       #   response_data: {
       #       as_string: "response data as string",
