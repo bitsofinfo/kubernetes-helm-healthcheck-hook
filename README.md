@@ -24,7 +24,22 @@ Dependencies: See [Dockerfile](Dockerfile)
 
 ## How it works
 
-## Example
+The main script is `checker.py`, which requires you to specify a `--target-root-url`
+plus at least one check defined in a *checks db YAML file* (example: [example/checksdb.yaml](example/checksdb.yaml)).
+Each check definition `path` gets invoked against the target root url.
+
+Optionally if you specify `--slack-config-filename`, each `alert` you define in the
+slack YAML file, will be executed per `checker.py` run. Example: (example: [example/slackconfig.yaml](example/slackconfig.yaml))
+Each alert you configure will be passed a Jinja2 context object that contains the full details of the `checker.py` invocation
+that you can use to render about any message content you'd like.
+
+This can be run many ways such as:
+* a direct Python script invocation on your local (i.e. `./checker.py -h`)
+* via `docker run` using the [bitsofinfo/kubernetes-helm-healthcheck-hook](https://cloud.docker.com/repository/docker/bitsofinfo/kubernetes-helm-healthcheck-hook) image
+* as a Kubernetes `Job` configured as Helm post upgrade/install hook
+* ... or any other way you wish!
+
+## Simple Example
 
 The examples below use the sample config files located under [example](example/)
 
@@ -34,7 +49,25 @@ git clone https://github.com/bitsofinfo/kubernetes-helm-healthcheck-hook.git
 cd kubernetes-helm-healthcheck-hook
 ```
 
+Lets process all the *checks* defined in [example/checksdb.yaml](example/checksdb.yaml)
+This will exit with a `1` because ONE of the checks fails (i.e. GET to `/status/500`),
+it also sends 2 alerts as defined in the [example/checksdb.yaml](example/slackconfig.yaml)
+https://bitsofinfo.slack.com/messages/CE46Z3TJA/ to the `#bitsofinfo-dev` channel
+```
+docker run -v `pwd`/example:/configs \
+  bitsofinfo/kubernetes-helm-healthcheck-hook:0.1.0 checker.py \
+  --target-root-url https://postman-echo.com \
+  --any-check-fail-exit-code 1 \
+  --checksdb-filename /configs/checksdb.yaml \
+  --slack-config-filename /configs/slackconfig.yaml
 
+echo "Exit code was: $?"
+```
+
+Now lets process all the *checks* defined in [example/checksdb.yaml](example/checksdb.yaml)
+EXCEPT those tagged with `fail`. This will exit with a `0` because none of the evaluated checks
+failed. It will also only send 1 alert (success only), because the 2nd alert configured in
+[example/checksdb.yaml](example/slackconfig.yaml) only fires when a check in in failed state.
 ```
 docker run -v `pwd`/example:/configs \
   bitsofinfo/kubernetes-helm-healthcheck-hook:0.1.0 checker.py \
@@ -43,6 +76,8 @@ docker run -v `pwd`/example:/configs \
   --checksdb-filename /configs/checksdb.yaml \
   --slack-config-filename /configs/slackconfig.yaml \
   --tags-disqualifier fail
+
+echo "Exit code was: $?"
 ```
 
 ## Usage
