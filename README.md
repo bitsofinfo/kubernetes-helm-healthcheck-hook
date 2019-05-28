@@ -31,7 +31,7 @@ docker run -v `pwd`/example:/configs \
   bitsofinfo/kubernetes-helm-healthcheck-hook:0.1.0 checker.py \
   --target-root-url https://postman-echo.com \
   --any-check-fail-exit-code 1 \
-  --checksdb-filename /configs/checksdb.yaml
+  --checksdb-filename /configs/checksdb.yaml \
   --slack-config-filename /configs/slackconfig.yaml
 ```
 
