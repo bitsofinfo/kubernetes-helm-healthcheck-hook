@@ -5,6 +5,8 @@ URI paths for a given target FQDN, evaluate the responses, optionally send one
 or more alerts via Slack and then `exit` with an exit code of your choice if any
 of the checks fail.
 
+![diag](/doc/diag1.png "Diagram1")
+
 * [Background](#background)
 * [Install/Setup](#req)
 * [How it works](#how)
