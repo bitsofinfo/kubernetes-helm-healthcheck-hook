@@ -22,6 +22,19 @@ You can also use it independently of Kubernetes / Helm as just a standalone util
 
 Dependencies: See `Dockerfile`
 
+## How it works
+
+## Example
+
+```
+docker run -v `pwd`/example:/configs \
+  bitsofinfo/kubernetes-helm-healthcheck-hook:0.1.0 checker.py \
+  --target-root-url https://postman-echo.com \
+  --any-check-fail-exit-code 1 \
+  --checksdb-filename /configs/checksdb.yaml
+  --slack-config-filename /configs/slackconfig.yaml
+```
+
 ## Usage
 
 For config formats needed for `--checksdb-filename` and `--slack-config-filename`
