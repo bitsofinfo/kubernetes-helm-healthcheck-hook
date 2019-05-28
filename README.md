@@ -107,13 +107,13 @@ echo "Exit code was: $?"
 
 Lets say you deploy some custom app of your's with Helm and you'd like to follow
 it up with an immediate check to validate its working or not and alert on that. Well
-lets just use this project for that.
+lets just use this project for that. (see [Helm Hooks docs](https://github.com/helm/helm/blob/master/docs/charts_hooks.md))
 
 1. Modify your app's Helm chart to generate an appropriate `ConfigMap` and `Job`
 properly annotated as a Helm `helm.sh/hook` of type `post-install` or `post-upgrade` (or both).
 
 2. Now when you upgrade/install an app with your chart, your Helm status will properly
-reflect success or failure based on the exit code of the `checker.py` job as well as
+reflect success or failure based on the exit code of the `checker.py` Job as well as
 send you any alerts.
 
 i.e. your chart could now generate something like this that interrogates anything you
