@@ -27,7 +27,8 @@ You can also use it independently of Kubernetes / Helm as just a standalone util
 
 # <a id="req"></a>Install/Setup
 
-Run via Docker: https://hub.docker.com/r/bitsofinfo/kubernetes-helm-healthcheck-hook
+Run via Docker:
+https://hub.docker.com/r/bitsofinfo/kubernetes-helm-healthcheck-hook
 
 Otherwise:
 
@@ -137,6 +138,8 @@ may not remain depending on how you configure the `helm.sh/hook-delete-policy` a
 4. Remember since your Hook is a Kubernetes Job it solely reacts to exit codes of zero (0) or one (1)
 to determine success or failure. You also have full access to all k8s Job configuration options to
 tailor your retry behavior if desired (on top of the retry behavior you can configure in `checker.py`)
+
+5. Want to check more than just ONE `--target-root-url`? Then just generate multiple k8s Jobs.
 
 Example: your chart could now generate something like the below that interrogates anything you
 wish that points to the app your chart just deployed (i.e. you might check an `Ingress` pointing
