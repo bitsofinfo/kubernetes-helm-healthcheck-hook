@@ -8,6 +8,7 @@ of the checks fail.
 * [Background](#background)
 * [Requirements](#req)
 * [How it works](#how)
+* [Configuration](#config)
 * [Usage](#usage)
 * [Example: simple](#simple)
 * [Example: k8s helm hook](#hook)
@@ -46,6 +47,16 @@ This can be run many ways such as:
 * via `docker run` using the [bitsofinfo/kubernetes-helm-healthcheck-hook](https://cloud.docker.com/repository/docker/bitsofinfo/kubernetes-helm-healthcheck-hook) image
 * as a Kubernetes `Job` configured as Helm post upgrade/install [Hook](https://github.com/helm/helm/blob/master/docs/charts_hooks.md)
 * ... or any other way you wish!
+
+## <a id="config"></a>Configuration
+
+The `checker.py` script takes various [command line arguments](#usage) combined
+with YAML configuration containing the "checks" to execute as well as optionally
+a slack alert config for the "alerts" to send.
+
+Configuration documentation is provided inline in the examples
+* [example/checksdb.yaml](example/checksdb.yaml) How you configure your "checks"
+* [example/slackconfig.yaml](example/slackconfig.yaml) How you configure your "alerts"
 
 ## <a id="simple"></a>Simple Example
 
