@@ -20,11 +20,20 @@ You can also use it independently of Kubernetes / Helm as just a standalone util
 
 **Python 3.6+**
 
-Dependencies: See `Dockerfile`
+Dependencies: See [Dockerfile](Dockerfile)
 
 ## How it works
 
 ## Example
+
+The examples below use the sample config files located under [example](example/)
+
+```
+git clone https://github.com/bitsofinfo/kubernetes-helm-healthcheck-hook.git
+
+cd kubernetes-helm-healthcheck-hook
+```
+
 
 ```
 docker run -v `pwd`/example:/configs \
@@ -32,7 +41,8 @@ docker run -v `pwd`/example:/configs \
   --target-root-url https://postman-echo.com \
   --any-check-fail-exit-code 1 \
   --checksdb-filename /configs/checksdb.yaml \
-  --slack-config-filename /configs/slackconfig.yaml
+  --slack-config-filename /configs/slackconfig.yaml \
+  --tags-disqualifier fail
 ```
 
 ## Usage
