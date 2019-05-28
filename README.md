@@ -31,7 +31,7 @@ Each check definition `path` gets invoked against the target root url.
 Optionally if you specify `--slack-config-filename`, each `alert` you define in the
 slack YAML file, will be executed per `checker.py` run. Example: (example: [example/slackconfig.yaml](example/slackconfig.yaml))
 Each alert you configure will be passed a Jinja2 context object that contains the full details of the `checker.py` invocation
-that you can use to render about any message content you'd like.
+that you can use to render about any message content you'd like. (To see a dump of what the context object looks like in STDOUT provide the `--debug-slack-jinja2-context` flag).
 
 This can be run many ways such as:
 * a direct Python script invocation on your local (i.e. `./checker.py -h`)
@@ -78,6 +78,111 @@ docker run -v `pwd`/example:/configs \
   --tags-disqualifier fail
 
 echo "Exit code was: $?"
+```
+
+Lets process them all again with much more verbose debug output printed to STDOUT
+to let you start customizing your slack alert config and or refine your checks.
+```
+docker run -v `pwd`/example:/configs \
+  bitsofinfo/kubernetes-helm-healthcheck-hook:0.1.0 checker.py \
+  --target-root-url https://postman-echo.com \
+  --any-check-fail-exit-code 1 \
+  --checksdb-filename /configs/checksdb.yaml \
+  --slack-config-filename /configs/slackconfig.yaml \
+  --verbose-output \
+  --debug-slack-jinja2-context
+
+echo "Exit code was: $?"
+```
+
+## Kubernetes Helm Hook Example
+
+Lets say you deploy some custom app of your's with Helm and you'd like to follow
+it up with an immediate check to validate its working or not and alert on that. Well
+lets just use this project for that.
+
+1. Modify your app's Helm chart to generate an appropriate `ConfigMap` and `Job`
+properly annotated as a Helm `helm.sh/hook` of type `post-install` or `post-upgrade` (or both).
+
+2. Now when you upgrade/install an app with your chart, your Helm status will properly
+reflect success or failure based on the exit code of the `checker.py` job as well as
+send you any alerts.
+
+i.e. your chart could now generate something like this that interrogates anything you
+wish that points to the app your chart just deployed (i.e. via an `Ingress` pointing
+to the app your chart created.
+
+```
+...
+generate your app's Deployment...
+generate your app's Service...
+generate your app's version specific Ingress...
+...
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ my-app-name }}-healthcheck-config
+  namespace: "{{ my-namespace }}"
+data:
+  healthchecks.config.yaml: |
+    - path: "/health"
+      method: "GET"
+      timeout: 5
+      retries: 3
+  slackalerts.config.yaml: |
+    - name: "Deployment Result"
+      webhook_url: https://hooks.slack.com/services/xxxxxxxxx
+      template: >
+        {
+          "text":"*Deployment result: {{ target_root_url }}* {{ overall_result }}"
+        }
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ my-app-name }}--healthcheck"
+  namespace: "{{ my-namespace }}"
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  template:
+    metadata:
+      name: "{{ my-namespace }}-healthcheck"
+    spec:
+      backoffLimit: 10 # retry 10 times
+      activeDeadlineSeconds: 600 # max run for 10 minutes (i.e. inclusive of retries)
+      restartPolicy: Never
+      volumes:
+        - name: hc-config-volume
+          configMap:
+            name: {{ my-namespace }}-healthcheck-config
+      containers:
+        - name: {{ my-namespace }}-healthcheck
+          image: "bitsofinfo/kubernetes-helm-healthcheck-hook:0.1.1"
+          volumeMounts:
+            - name: hc-config-volume
+              mountPath: /etc/checker
+          command:
+            - "checker.py"
+          args:
+            - "--target-root-url"
+            - "https://{{ my-app-ingress-fqdn }}"
+            - "--max-retries"
+            - "30"
+            - "--sleep-seconds"
+            - "10"
+            - "--any-check-fail-exit-code"
+            - "1"
+            - "--checksdb-filename"
+            - "/etc/checker/healthchecks.config.yaml"
+            - "--slack-config-filename"
+            - "/etc/checker/slackalerts.config.yaml"
+
 ```
 
 ## Usage

@@ -515,6 +515,7 @@ def execute(target_root_url, \
                     }
 
                     if debug_slack_jinja2_context:
+                        logging.debug("debug_slack_jinja2_context=True, the JSON that follows is the jinj2_context object that is available to your Jinja2 templates in your --slack-config-filename")
                         print(json.dumps(slack_jinja2_context,indent=2))
 
                     # alert condition?
