@@ -217,10 +217,7 @@ spec:
 
 ## <a id="usage"></a>Usage
 
-For config formats needed for `--checksdb-filename` and `--slack-config-filename`
-see the `Configuration` section following `Usage`
-
-For the formats of the YAML config files see:
+For the formats of the YAML `--checksdb-filename` and `--slack-config-filename` config files see:
 * [example/checksdb.yaml](example/checksdb.yaml) How you configure your "checks"
 * [example/slackconfig.yaml](example/slackconfig.yaml) How you configure your "alerts"
 
