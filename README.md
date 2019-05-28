@@ -6,7 +6,7 @@ or more alerts via Slack and then `exit` with an exit code of your choice if any
 of the checks fail.
 
 * [Background](#background)
-* [Requirements](#req)
+* [Install/Setup](#req)
 * [How it works](#how)
 * [Configuration](#config)
 * [Usage](#usage)
@@ -25,7 +25,11 @@ and `Job` annotated as a [Helm Hook](https://github.com/helm/helm/blob/master/do
 
 You can also use it independently of Kubernetes / Helm as just a standalone utility.
 
-# <a id="req"></a>Requirements
+# <a id="req"></a>Install/Setup
+
+Run via Docker: https://hub.docker.com/r/bitsofinfo/kubernetes-helm-healthcheck-hook
+
+Otherwise:
 
 **Python 3.6+**
 
