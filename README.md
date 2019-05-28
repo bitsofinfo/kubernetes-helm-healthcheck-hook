@@ -187,13 +187,12 @@ metadata:
     "helm.sh/hook-weight": "-5"
     "helm.sh/hook-delete-policy": before-hook-creation
 spec:
+  backoffLimit: 0 # retry 0 times, leverage checker.py built in retries
+  activeDeadlineSeconds: 600 # max run for 10 minutes (i.e. inclusive of retries)
   template:
     metadata:
       name: "{{ my-namespace }}-healthcheck"
     spec:
-      backoffLimit: 10 # retry 10 times
-      activeDeadlineSeconds: 600 # max run for 10 minutes (i.e. inclusive of retries)
-      restartPolicy: Never
       volumes:
         - name: hc-config-volume
           configMap:
@@ -201,6 +200,7 @@ spec:
       containers:
         - name: {{ my-namespace }}-healthcheck
           image: "bitsofinfo/kubernetes-helm-healthcheck-hook:0.1.1"
+          restartPolicy: Never
           volumeMounts:
             - name: hc-config-volume
               mountPath: /etc/checker
