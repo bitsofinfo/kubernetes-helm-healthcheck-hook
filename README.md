@@ -5,24 +5,32 @@ URI paths for a given target FQDN, evaluate the responses, optionally send one
 or more alerts via Slack and then `exit` with an exit code of your choice if any
 of the checks fail.
 
-## Background
+* [Background](#background)
+* [Requirements](#req)
+* [How it works](#how)
+* [Usage](#usage)
+* [Example: simple](#simple)
+* [Example: k8s helm hook](#hook)
+
+## <a id="background"></a>Background
 
 This project came to be out of a need to cause Helm chart installs & upgrades against
 Kubernetes to fail and appropriately alert DevOps when the installed/upgraded Chart
 yields a "non-healthy" result.
 
 It can be easily adapted to existing Helm charts via a combination of a `ConfigMap` and
-and `Job` annotated as a `helm.sh/hook` of type `post-install` or `post-upgrade` (or both)
+and `Job` annotated as a [Helm Hook](https://github.com/helm/helm/blob/master/docs/charts_hooks.md)
+`helm.sh/hook` of type `post-install` or `post-upgrade` (or both)
 
 You can also use it independently of Kubernetes / Helm as just a standalone utility.
 
-# Requirements
+# <a id="req"></a>Requirements
 
 **Python 3.6+**
 
 Dependencies: See [Dockerfile](Dockerfile)
 
-## How it works
+## <a id="how"></a>How it works
 
 The main script is `checker.py`, which requires you to specify a `--target-root-url`
 plus at least one check defined in a *checks db YAML file* (example: [example/checksdb.yaml](example/checksdb.yaml)).
@@ -36,10 +44,10 @@ that you can use to render about any message content you'd like. (To see a dump 
 This can be run many ways such as:
 * a direct Python script invocation on your local (i.e. `./checker.py -h`)
 * via `docker run` using the [bitsofinfo/kubernetes-helm-healthcheck-hook](https://cloud.docker.com/repository/docker/bitsofinfo/kubernetes-helm-healthcheck-hook) image
-* as a Kubernetes `Job` configured as Helm post upgrade/install hook
+* as a Kubernetes `Job` configured as Helm post upgrade/install [Hook](https://github.com/helm/helm/blob/master/docs/charts_hooks.md)
 * ... or any other way you wish!
 
-## Simple Example
+## <a id="simple"></a>Simple Example
 
 The examples below use the sample config files located under [example](example/)
 
@@ -95,7 +103,7 @@ docker run -v `pwd`/example:/configs \
 echo "Exit code was: $?"
 ```
 
-## Kubernetes Helm Hook Example
+## <a id="hook"></a>Kubernetes Helm Hook Example
 
 Lets say you deploy some custom app of your's with Helm and you'd like to follow
 it up with an immediate check to validate its working or not and alert on that. Well
@@ -185,7 +193,7 @@ spec:
 
 ```
 
-## Usage
+## <a id="usage"></a>Usage
 
 For config formats needed for `--checksdb-filename` and `--slack-config-filename`
 see the `Configuration` section following `Usage`
