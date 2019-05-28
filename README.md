@@ -25,7 +25,7 @@ and `Job` annotated as a [Helm Hook](https://github.com/helm/helm/blob/master/do
 
 You can also use it independently of Kubernetes / Helm as just a standalone utility.
 
-# <a id="req"></a>Install/Setup
+## <a id="req"></a>Install/Setup
 
 Run via Docker:
 https://hub.docker.com/r/bitsofinfo/kubernetes-helm-healthcheck-hook
