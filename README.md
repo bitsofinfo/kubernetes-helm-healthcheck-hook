@@ -116,17 +116,27 @@ properly annotated as a Helm `helm.sh/hook` of type `post-install` or `post-upgr
 reflect success or failure based on the exit code of the `checker.py` Job as well as
 send you any alerts.
 
-i.e. your chart could now generate something like this that interrogates anything you
-wish that points to the app your chart just deployed (i.e. via an `Ingress` pointing
-to the app your chart created.
+3. When you delete your Helm release the ConfigMap will be purged, but the Job may or
+may not remain depending on how you configure the `helm.sh/hook-delete-policy` annotation
+
+4. Remember since your Hook is a Kubernetes Job it solely reacts to exit codes of zero (0) or one (1)
+to determine success or failure. You also have full access to all k8s Job configuration options to
+tailor your retry behavior if desired (on top of the retry behavior you can configure in `checker.py`)
+
+Example: your chart could now generate something like the below that interrogates anything you
+wish that points to the app your chart just deployed (i.e. you might check an `Ingress` pointing
+to the app your chart created.)
 
 ```
 ...
+---
 generate your app's Deployment...
+---
 generate your app's Service...
+---
 generate your app's version specific Ingress...
-...
 
+# Here is our ConfigMap for our "check" + "alert" YAML configs
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -147,6 +157,7 @@ data:
           "text":"*Deployment result: {{ target_root_url }}* {{ overall_result }}"
         }
 
+# Here is our Job that invokes checker.py using the ConfigMap above.
 ---
 apiVersion: batch/v1
 kind: Job
