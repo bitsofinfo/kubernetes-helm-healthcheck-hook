@@ -244,6 +244,7 @@ usage: checker.py [-h] [-u TARGET_ROOT_URL] [-i CHECKSDB_FILENAME]
                   [-d TAGS_DISQUALIFIER] [-r MAX_RETRIES] [-n CHECK_NAME]
                   [-t THREADS] [-s SLEEP_SECONDS] [-l LOG_LEVEL] [-b LOG_FILE]
                   [-z] [-x ANY_CHECK_FAIL_EXIT_CODE] [-D]
+                  [-e EXTRA_SLACK_CONTEXT_PROPS]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -302,4 +303,9 @@ optional arguments:
   -D, --debug-slack-jinja2-context
                         Dumps a JSON debug output of the jinja2 object passed
                         to the Slack jinja2 template
+  -e EXTRA_SLACK_CONTEXT_PROPS, --extra-slack-context-props EXTRA_SLACK_CONTEXT_PROPS
+                        Optional comma delimited of key=value,key2=value pairs
+                        that will be added to the 'context' object passed to
+                        the Slack Alert jinja2 templates under the key
+                        'extra_props'
 ```
