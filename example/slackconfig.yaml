@@ -42,6 +42,10 @@
                 "title":"Healthcheck result",
                 "value":"{{ overall_result }}",
                 "short":true
+              },
+              {
+                "title":"extra_props.key1",
+                "value":"{{ extra_props.key1 }}"
               }
             ]
           }

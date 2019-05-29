@@ -352,6 +352,7 @@ def execute(target_root_url, \
             tags_qualifier, \
             tags_disqualifier, \
             debug_slack_jinja2_context, \
+            extra_slack_context_props, \
             all_args):
 
     # if any checks failed
@@ -505,13 +506,19 @@ def execute(target_root_url, \
 
             for slack_alert_config in slack_alert_configs:
                 try:
+                    # parse extra_slack_context_props if provided (k=v,k2=v2,...)
+                    extra_props = None
+                    if extra_slack_context_props and extra_slack_context_props != "":
+                        extra_props = dict(x.split("=") for x in extra_slack_context_props.split(","))
+
                     slack_jinja2_context = {
                         'check_name':check_name,
                         'overall_result': (True if not has_check_failures else False),
                         'target_root_url':target_root_url,
                         'checks':finalized_checks_db,
                         'checker_args':vars(all_args),
-                        'slack_alert_config':slack_alert_config
+                        'slack_alert_config':slack_alert_config,
+                        'extra_props':extra_props
                     }
 
                     if debug_slack_jinja2_context:
@@ -619,6 +626,8 @@ if __name__ == '__main__':
         help="If ANY single check defined in --checksdb-filename fails or a general program error occurs, force a sys.exit(your-provided-exit-code). If all checks are successful the exit code will be 0. Default 1")
     parser.add_argument('-D', '--debug-slack-jinja2-context', action='store_true', default=False, \
         help="Dumps a JSON debug output of the jinja2 object passed to the Slack jinja2 template")
+    parser.add_argument('-e', '--extra-slack-context-props', dest="extra_slack_context_props", default=None, \
+        help="Optional comma delimited of key=value,key2=value pairs that will be added to the 'context' object passed to the Slack Alert jinja2 templates under the key 'extra_props'")
 
 
     args = parser.parse_args()
@@ -666,4 +675,5 @@ if __name__ == '__main__':
             tags_qualifier_arr, \
             tags_disqualifier_arr, \
             args.debug_slack_jinja2_context, \
+            args.extra_slack_context_props, \
             args)

@@ -2,32 +2,93 @@
   "check_name": "no --check-name specified",
   "overall_result": false,
   "target_root_url": "https://postman-echo.com",
-  "checker_args": {
-    "target_root_url": "https://postman-echo.com",
-    "checksdb_filename": "checksdb.yaml",
-    "slack_config_filename": "slackconfig.yaml",
-    "output_filename": null,
-    "output_format": "json",
-    "verbose_output": false,
-    "tags_qualifier": null,
-    "tags_disqualifier": null,
-    "max_retries": 100,
-    "check_name": "no --check-name specified",
-    "threads": 1,
-    "sleep_seconds": 0,
-    "log_level": "DEBUG",
-    "log_file": null,
-    "stdout_result": true,
-    "any_check_fail_exit_code": "1",
-    "debug_slack_jinja2_context": true
-  },
-  "slack_alert_config": {
-    "name": "Failure only alert",
-    "alert_condition": "{{ '1' if not overall_result else '0' }}",
-    "webhook_url": "https://hooks.slack.com/services/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",
-    "template": "{\n  \"text\":\"*Failure only alert: {{ target_root_url }}*\",\n  \"attachments\": [\n      {\n        \"fields\": [\n          {\n            \"title\":\"Healthcheck result\",\n            \"value\":\"{{ overall_result }}\",\n            \"short\":true\n          }\n        ]\n      }\n  ]\n}\n"
-  },
   "checks": [
+    {
+      "path": "/post",
+      "tags": [
+        "post"
+      ],
+      "method": "POST",
+      "headers": [
+        "Content-Type: text/xml"
+      ],
+      "body": "<xml>test</xml>\n",
+      "is_healthy": {
+        "response_codes": [
+          200
+        ],
+        "body_evaluator": {
+          "type": "jinja2",
+          "template": "{% if check_def is defined and response_data is defined and check_def['body']|replace('\n','')|string in response_data['as_string'] and response_code == 200 %}1{% else %}0{% endif %}"
+        }
+      },
+      "timeout": 5,
+      "retries": 3,
+      "result": {
+        "success": true,
+        "code": 200,
+        "ms": 255.0,
+        "attempts": 1,
+        "response": {
+          "as_string": "{\"args\":{},\"data\":\"<xml>test</xml>\\n\",\"files\":{},\"form\":{},\"headers\":{\"x-forwarded-proto\":\"https\",\"host\":\"postman-echo.com\",\"content-length\":\"16\",\"accept-encoding\":\"identity\",\"content-type\":\"text/xml\",\"user-agent\":\"Python-urllib/3.7\",\"x-forwarded-port\":\"443\"},\"json\":null,\"url\":\"https://postman-echo.com/post\"}",
+          "as_object": {
+            "args": {},
+            "data": "<xml>test</xml>\n",
+            "files": {},
+            "form": {},
+            "headers": {
+              "x-forwarded-proto": "https",
+              "host": "postman-echo.com",
+              "content-length": "16",
+              "accept-encoding": "identity",
+              "content-type": "text/xml",
+              "user-agent": "Python-urllib/3.7",
+              "x-forwarded-port": "443"
+            },
+            "json": null,
+            "url": "https://postman-echo.com/post"
+          }
+        },
+        "headers": [
+          [
+            "Content-Type",
+            "application/json; charset=utf-8"
+          ],
+          [
+            "Date",
+            "Wed, 29 May 2019 20:56:38 GMT"
+          ],
+          [
+            "ETag",
+            "W/\"136-5CD3gyfZcHhiGPJF+6E7GUlohyo\""
+          ],
+          [
+            "Server",
+            "nginx"
+          ],
+          [
+            "set-cookie",
+            "sails.sid=s%3Axs2obmjAVDfpKPViDbD0wjBr02Uyc0aD.vMaQY%2FQVl3%2B2iQG2pUnC4ac71ihLB7ckVAKN9dmHbfU; Path=/; HttpOnly"
+          ],
+          [
+            "Vary",
+            "Accept-Encoding"
+          ],
+          [
+            "Content-Length",
+            "310"
+          ],
+          [
+            "Connection",
+            "Close"
+          ]
+        ],
+        "dns": "52.20.172.72",
+        "attempts_failed": []
+      },
+      "url": "https://postman-echo.com/post",
+      "curl": "curl -v --retry 3 -k -m 5 -X POST --header 'Content-Type: text/xml' -d '<xml>test</xml>\n' https://postman-echo.com/post"
+    },
     {
       "path": "/status/200",
       "tags": [
@@ -39,7 +100,7 @@
       "result": {
         "success": true,
         "code": 200,
-        "ms": 250.0,
+        "ms": 481.0,
         "attempts": 1,
         "response": {
           "as_string": "{\"status\":200}",
@@ -54,7 +115,7 @@
           ],
           [
             "Date",
-            "Mon, 27 May 2019 02:20:26 GMT"
+            "Wed, 29 May 2019 20:56:38 GMT"
           ],
           [
             "ETag",
@@ -66,7 +127,7 @@
           ],
           [
             "set-cookie",
-            "sails.sid=s%3AJI-YKA46BeQu3sUdsPDVxY_-FXVz0l2t.ADhit7f9AlH91V53LK0dMisQa651lon44YRpW9ePj1Q; Path=/; HttpOnly"
+            "sails.sid=s%3AAeCG9nE4HsRZuz7-y0bSQZ6Phx6CnGHv.j6RyGdIo%2F9KQkcoDgjS%2Blu7LgiJ5cvf%2FBaPEgjkAXEw; Path=/; HttpOnly"
           ],
           [
             "Vary",
@@ -81,7 +142,7 @@
             "Close"
           ]
         ],
-        "dns": "35.171.231.221",
+        "dns": "52.20.172.72",
         "attempts_failed": []
       },
       "url": "https://postman-echo.com/status/200",
@@ -108,7 +169,7 @@
       "result": {
         "success": true,
         "code": 500,
-        "ms": 244.0,
+        "ms": 258.0,
         "attempts": 1,
         "response": {
           "as_string": "{\"status\":500}",
@@ -123,7 +184,7 @@
           ],
           [
             "Date",
-            "Mon, 27 May 2019 02:20:26 GMT"
+            "Wed, 29 May 2019 20:56:39 GMT"
           ],
           [
             "ETag",
@@ -135,7 +196,7 @@
           ],
           [
             "set-cookie",
-            "sails.sid=s%3AVOt6yMxUR2S65MdpDdcs5CwB14jx7QfI.RHGxNcaLYBIaxQgJIoPp%2F8IDxQAxnBYGqfuPWfcIYAA; Path=/; HttpOnly"
+            "sails.sid=s%3AIJWpzUoM-_426K4TJI6l0LNHbu4mWr64.7X3VvPi7peI67y57q%2F92jVTyZWt%2FczlHFrrFwiV0h%2FE; Path=/; HttpOnly"
           ],
           [
             "Vary",
@@ -150,7 +211,7 @@
             "Close"
           ]
         ],
-        "dns": "35.171.231.221",
+        "dns": "52.20.172.72",
         "attempts_failed": []
       },
       "url": "https://postman-echo.com/status/500",
@@ -173,7 +234,7 @@
       "result": {
         "success": false,
         "attempts": 3,
-        "ms": 241.0,
+        "ms": 240.0,
         "response": {
           "as_string": "{\"status\":500}",
           "as_object": {
@@ -187,7 +248,7 @@
           ],
           [
             "Date",
-            "Mon, 27 May 2019 02:20:27 GMT"
+            "Wed, 29 May 2019 20:56:39 GMT"
           ],
           [
             "ETag",
@@ -199,7 +260,7 @@
           ],
           [
             "set-cookie",
-            "sails.sid=s%3AA0vKbHufuteePRP_6gf2c0e600xs-VyJ.fcqmeU8D0huhlUIgUUqnwikxjFyx%2FDU3n6k5btKHLH0; Path=/; HttpOnly"
+            "sails.sid=s%3A6jHHTO-OojcGbhWcWM7r0pL62HuS_8mC.PYs8MhLKMxHUAUunyFoaPYUk3PYDWRAZrwXRC%2FcWJbg; Path=/; HttpOnly"
           ],
           [
             "Vary",
@@ -214,12 +275,12 @@
             "Close"
           ]
         ],
-        "dns": "35.171.231.221",
+        "dns": "52.20.172.72",
         "error": "response status code:500, is not in 'success_status_codes'",
         "code": 500,
         "attempts_failed": [
           {
-            "ms": 243.0,
+            "ms": 254.0,
             "response": {
               "as_string": "{\"status\":500}",
               "as_object": {
@@ -233,7 +294,7 @@
               ],
               [
                 "Date",
-                "Mon, 27 May 2019 02:20:26 GMT"
+                "Wed, 29 May 2019 20:56:39 GMT"
               ],
               [
                 "ETag",
@@ -245,7 +306,7 @@
               ],
               [
                 "set-cookie",
-                "sails.sid=s%3AB9GdAcfEGDqo4xgGEFDxKRjfElyIUVzD.fICgOMaUzNQ0oKejd3k7cnU7aEvjEqK82Pt3Twfb0GI; Path=/; HttpOnly"
+                "sails.sid=s%3AWPygiLLVcxJHJOwByQOfZS7-xnnfYrGn.oETbd9YJI%2F1zCSz1N2zXZjeMVZ5jNjQ5Kahg04zfhrU; Path=/; HttpOnly"
               ],
               [
                 "Vary",
@@ -260,7 +321,7 @@
                 "Close"
               ]
             ],
-            "dns": "35.171.231.221",
+            "dns": "52.20.172.72",
             "error": "response status code:500, is not in 'success_status_codes'",
             "code": 500
           },
@@ -279,7 +340,7 @@
               ],
               [
                 "Date",
-                "Mon, 27 May 2019 02:20:26 GMT"
+                "Wed, 29 May 2019 20:56:39 GMT"
               ],
               [
                 "ETag",
@@ -291,7 +352,7 @@
               ],
               [
                 "set-cookie",
-                "sails.sid=s%3AnxCOP0yJb40OuxfE8Z0sD1-qlDj758Aq.eY14Qsr9eIyi3HyUbd1iqm7gzKLONaEv5YyTq1MSV3c; Path=/; HttpOnly"
+                "sails.sid=s%3AUAGPUSRD1nt654L33EhTlz3Bs4bNXQcy.%2BeY9nNIngqPCBy92b%2BMJj9o959emhxUfWijo9avsb5k; Path=/; HttpOnly"
               ],
               [
                 "Vary",
@@ -306,12 +367,12 @@
                 "Close"
               ]
             ],
-            "dns": "35.171.231.221",
+            "dns": "52.20.172.72",
             "error": "response status code:500, is not in 'success_status_codes'",
             "code": 500
           },
           {
-            "ms": 241.0,
+            "ms": 240.0,
             "response": {
               "as_string": "{\"status\":500}",
               "as_object": {
@@ -325,7 +386,7 @@
               ],
               [
                 "Date",
-                "Mon, 27 May 2019 02:20:27 GMT"
+                "Wed, 29 May 2019 20:56:39 GMT"
               ],
               [
                 "ETag",
@@ -337,7 +398,7 @@
               ],
               [
                 "set-cookie",
-                "sails.sid=s%3AA0vKbHufuteePRP_6gf2c0e600xs-VyJ.fcqmeU8D0huhlUIgUUqnwikxjFyx%2FDU3n6k5btKHLH0; Path=/; HttpOnly"
+                "sails.sid=s%3A6jHHTO-OojcGbhWcWM7r0pL62HuS_8mC.PYs8MhLKMxHUAUunyFoaPYUk3PYDWRAZrwXRC%2FcWJbg; Path=/; HttpOnly"
               ],
               [
                 "Vary",
@@ -352,7 +413,7 @@
                 "Close"
               ]
             ],
-            "dns": "35.171.231.221",
+            "dns": "52.20.172.72",
             "error": "response status code:500, is not in 'success_status_codes'",
             "code": 500
           }
@@ -392,7 +453,7 @@
       "result": {
         "success": true,
         "code": 200,
-        "ms": 232.0,
+        "ms": 257.0,
         "attempts": 1,
         "response": {
           "as_string": "{\"args\":{},\"data\":\"<xml>test</xml>\\n\",\"files\":{},\"form\":{},\"headers\":{\"x-forwarded-proto\":\"https\",\"host\":\"postman-echo.com\",\"content-length\":\"16\",\"accept-encoding\":\"identity\",\"content-type\":\"text/xml\",\"user-agent\":\"Python-urllib/3.7\",\"x-forwarded-port\":\"443\"},\"json\":null,\"url\":\"https://postman-echo.com/post\"}",
@@ -421,7 +482,7 @@
           ],
           [
             "Date",
-            "Mon, 27 May 2019 02:20:27 GMT"
+            "Wed, 29 May 2019 20:56:40 GMT"
           ],
           [
             "ETag",
@@ -433,7 +494,7 @@
           ],
           [
             "set-cookie",
-            "sails.sid=s%3AFE1jnT2Vo31fh91EaiVlTK-j_a8pIfra.mYpDF22D%2F7N2mNi5WGP%2BKMhibHZx808zPR2vytB04s0; Path=/; HttpOnly"
+            "sails.sid=s%3A-QqSisVTyqzWXSJMqlK2rgW2BWpBTlWu.8c%2B6mf7YItM0dIMT2QVjHsE1X5dGjk8Q2zV0cA6uOfo; Path=/; HttpOnly"
           ],
           [
             "Vary",
@@ -448,97 +509,42 @@
             "Close"
           ]
         ],
-        "dns": "35.171.231.221",
-        "attempts_failed": []
-      },
-      "url": "https://postman-echo.com/post",
-      "curl": "curl -v --retry 3 -k -m 5 -X POST --header 'Content-Type: text/xml' -d '<xml>test</xml>\n' https://postman-echo.com/post"
-    },
-    {
-      "path": "/post",
-      "tags": [
-        "post"
-      ],
-      "method": "POST",
-      "headers": [
-        "Content-Type: text/xml"
-      ],
-      "body": "<xml>test</xml>\n",
-      "is_healthy": {
-        "response_codes": [
-          200
-        ],
-        "body_evaluator": {
-          "type": "jinja2",
-          "template": "{% if check_def is defined and response_data is defined and check_def['body']|replace('\n','')|string in response_data['as_string'] and response_code == 200 %}1{% else %}0{% endif %}"
-        }
-      },
-      "timeout": 5,
-      "retries": 3,
-      "result": {
-        "success": true,
-        "code": 200,
-        "ms": 238.0,
-        "attempts": 1,
-        "response": {
-          "as_string": "{\"args\":{},\"data\":\"<xml>test</xml>\\n\",\"files\":{},\"form\":{},\"headers\":{\"x-forwarded-proto\":\"https\",\"host\":\"postman-echo.com\",\"content-length\":\"16\",\"accept-encoding\":\"identity\",\"content-type\":\"text/xml\",\"user-agent\":\"Python-urllib/3.7\",\"x-forwarded-port\":\"443\"},\"json\":null,\"url\":\"https://postman-echo.com/post\"}",
-          "as_object": {
-            "args": {},
-            "data": "<xml>test</xml>\n",
-            "files": {},
-            "form": {},
-            "headers": {
-              "x-forwarded-proto": "https",
-              "host": "postman-echo.com",
-              "content-length": "16",
-              "accept-encoding": "identity",
-              "content-type": "text/xml",
-              "user-agent": "Python-urllib/3.7",
-              "x-forwarded-port": "443"
-            },
-            "json": null,
-            "url": "https://postman-echo.com/post"
-          }
-        },
-        "headers": [
-          [
-            "Content-Type",
-            "application/json; charset=utf-8"
-          ],
-          [
-            "Date",
-            "Mon, 27 May 2019 02:20:27 GMT"
-          ],
-          [
-            "ETag",
-            "W/\"136-5CD3gyfZcHhiGPJF+6E7GUlohyo\""
-          ],
-          [
-            "Server",
-            "nginx"
-          ],
-          [
-            "set-cookie",
-            "sails.sid=s%3Ax400os53srZSTtYbDP9AJ-EJFVVl0vZt.lCTHH0c%2FZ8AhoINyGVYviCN%2B%2FTfmWse5P9ORXqmL4u0; Path=/; HttpOnly"
-          ],
-          [
-            "Vary",
-            "Accept-Encoding"
-          ],
-          [
-            "Content-Length",
-            "310"
-          ],
-          [
-            "Connection",
-            "Close"
-          ]
-        ],
-        "dns": "35.171.231.221",
+        "dns": "52.20.172.72",
         "attempts_failed": []
       },
       "url": "https://postman-echo.com/post",
       "curl": "curl -v --retry 3 -k -m 5 -X POST --header 'Content-Type: text/xml' -d '<xml>test</xml>\n' https://postman-echo.com/post"
     }
-  ]
+  ],
+  "checker_args": {
+    "target_root_url": "https://postman-echo.com",
+    "checksdb_filename": "example/checksdb.yaml",
+    "slack_config_filename": "example/slackconfig.yaml",
+    "output_filename": null,
+    "output_format": "json",
+    "verbose_output": true,
+    "tags_qualifier": null,
+    "tags_disqualifier": null,
+    "max_retries": 100,
+    "check_name": "no --check-name specified",
+    "threads": 1,
+    "sleep_seconds": 0,
+    "log_level": "DEBUG",
+    "log_file": null,
+    "stdout_result": true,
+    "any_check_fail_exit_code": "1",
+    "debug_slack_jinja2_context": true,
+    "extra_slack_context_props": "key1=val,key2=val2,key3=x"
+  },
+  "slack_alert_config": {
+    "name": "Failure only alert",
+    "alert_condition": "{{ '1' if not overall_result else '0' }}",
+    "webhook_url": "https://hooks.slack.com/services/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",
+    "template": "{\n  \"text\":\"*Failure only alert: {{ target_root_url }}*\",\n  \"attachments\": [\n      {\n        \"fields\": [\n          {\n            \"title\":\"Healthcheck result\",\n            \"value\":\"{{ overall_result }}\",\n            \"short\":true\n          }\n        ]\n      }\n  ]\n}\n"
+  },
+  "extra_props": {
+    "key1": "val",
+    "key2": "val2",
+    "key3": "x"
+  }
 }
