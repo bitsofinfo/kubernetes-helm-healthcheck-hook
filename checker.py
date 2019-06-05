@@ -108,7 +108,7 @@ def processResponse(check_def,
         if 'body_evaluator' in hc['is_healthy']:
             success_body_evaluator = hc['is_healthy']['body_evaluator']
 
-    # what is failure? (optional)
+    # what is failure? (optional, but takes precedence)
     failure_status_codes = None
     if 'is_not_healthy' in hc:
         failure_status_codes = hc['is_not_healthy']['response_codes']
@@ -117,9 +117,12 @@ def processResponse(check_def,
     response_is_healthy = False
     response_unhealthy_reason = None
 
-    if failure_status_codes is not None and response.getcode() in failure_status_codes:
-        response_is_healthy = False
-        response_unhealthy_reason = "response status code:" + str(response.getcode()) + ", is in 'failure_status_codes'"
+    # is_not_healthy takes precedence over any is_healthy which is ignored
+    if failure_status_codes is not None:
+        if response.getcode() not in failure_status_codes:
+            response_is_healthy = True
+        else:
+            response_unhealthy_reason = "response status code:" + str(response.getcode()) + ", is in 'failure_status_codes'"
 
     elif response.getcode() in success_status_codes:
 
