@@ -387,6 +387,9 @@ def execute(target_root_url, \
         executable_service_checks = [] # note this is array of dicts
         finalized_checks_db = []
 
+        if len(checks_db) == 0:
+            logging.info(checksdb_filename + " contains ZERO checks to perform!")
+
         # process it all
         for checkdef in checks_db:
 
@@ -395,17 +398,17 @@ def execute(target_root_url, \
             no_match_reason = None
 
             # check tags qualifiers
-            if tags_qualifier is not None and 'tags' not in checkdef:
+            if tags_qualifier is not None and len(tags_qualifier) > 0 and 'tags' not in checkdef:
                 hc_executable = False
                 no_match_reason = "'tags_qualifier' present but check has no 'tags' attribute"
-            if tags_qualifier is not None and 'tags' in checkdef:
+            if tags_qualifier is not None and len(tags_qualifier) > 0 and 'tags' in checkdef:
                 for tag_qualifier in tags_qualifier:
                     if tag_qualifier not in checkdef['tags']:
                         hc_executable = False
                         no_match_reason = "No 'tags' matched provided 'tags_qualifier'"
 
             # check tags disqualifiers
-            if tags_disqualifier is not None and 'tags' in checkdef:
+            if tags_disqualifier is not None and len(tags_disqualifier) > 0 and 'tags' in checkdef:
                 for tag_disqualifier in tags_disqualifier:
                     if tag_disqualifier     in checkdef['tags']:
                         hc_executable = False
