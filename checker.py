@@ -108,11 +108,20 @@ def processResponse(check_def,
         if 'body_evaluator' in hc['is_healthy']:
             success_body_evaluator = hc['is_healthy']['body_evaluator']
 
+    # what is failure? (optional)
+    failure_status_codes = None
+    if 'is_not_healthy' in hc:
+        failure_status_codes = hc['is_not_healthy']['response_codes']
 
     # lets actually check if the response is legit...
     response_is_healthy = False
     response_unhealthy_reason = None
-    if response.getcode() in success_status_codes:
+
+    if failure_status_codes is not None and response.getcode() in failure_status_codes:
+        response_is_healthy = False
+        response_unhealthy_reason = "response status code:" + str(response.getcode()) + ", is in 'failure_status_codes'"
+
+    elif response.getcode() in success_status_codes:
 
         # handle evaluator..
         if success_body_evaluator is not None:
@@ -457,6 +466,7 @@ def execute(target_root_url, \
                 check_def.pop("headers",None)
                 check_def.pop("ports",None)
                 check_def.pop("is_healthy",None)
+                check_def.pop("is_not_healthy",None)
                 check_def.pop("retries",None)
                 check_def.pop("timeout",None)
                 cd_result = check_def['result']

@@ -66,7 +66,7 @@
   method: "GET"
   timeout: 5
   retries: 3
-  is_healthy:
+  is_healthy: # you can also do 'is_not_healthy' (see example below)
     response_codes: [500]
     body_evaluator: # body evaluator interprets the response body.
       type: "contains" # the 'contains' evaluator does a simple string match
@@ -78,6 +78,14 @@
   timeout: 5
   retries: 3
   is_healthy:
+    response_codes: [200]
+
+- path: "/status/500"
+  tags: ["health"]
+  method: "GET"
+  timeout: 5
+  retries: 3
+  is_not_healthy: # is_not_healthy only supports response_codes as of now
     response_codes: [200]
 
 - path: "/post"
