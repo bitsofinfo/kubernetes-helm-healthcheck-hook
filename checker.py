@@ -328,7 +328,7 @@ def execServiceCheck(config):
 
             # if it was successful, exit loop
             if hc['result']['success']:
-                break;
+                break
 
 
         except Exception as e:
@@ -360,6 +360,7 @@ def execServiceCheck(config):
             # finally... lets invert the result if necessary...
             if isResultErrorActuallySuccess(hc):
                 hc['result']['success'] = True
+                break
 
 
         # finally, sleep after every attempt IF configured to do so...
