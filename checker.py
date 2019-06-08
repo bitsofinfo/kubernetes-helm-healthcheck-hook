@@ -194,7 +194,7 @@ def processResponse(check_def,
 
 
 def isResultErrorActuallySuccess(hc):
-    if hc['result']['error'] and 'error_msg_reasons' in hc['is_healthy']:
+    if 'is_healthy' in hc and hc['result']['error'] and 'error_msg_reasons' in hc['is_healthy']:
         for error_reason in hc['is_healthy']['error_msg_reasons']:
             if error_reason.lower() in hc['result']['error'].lower():
                 logging.debug("isErrorMessageActuallySuccess() HTTP request failed w/ error: '" + hc['result']['error'] + \
