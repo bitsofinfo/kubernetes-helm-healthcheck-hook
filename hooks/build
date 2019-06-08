@@ -1,0 +1,3 @@
+#!/bin/sh
+# https://github.com/docker/hub-feedback/issues/508#issuecomment-222520720
+docker build --build-arg GIT_TAG=$GIT_TAG -t $IMAGE_NAME .
