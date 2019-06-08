@@ -10,7 +10,7 @@ RUN apk update ; \
     apk add git ; \
     echo $PATH ; \
     git clone --branch ${GIT_TAG} https://github.com/bitsofinfo/kubernetes-helm-healthcheck-hook.git ; \
-    cd /kubernetes-helm-healthcheck-hook; git status; cd / ; \
+    cd /kubernetes-helm-healthcheck-hook; git status; rm -rf .git; cd / ; \
     cp /kubernetes-helm-healthcheck-hook/*.py /usr/local/bin/ ; \
     rm -rf /kubernetes-helm-healthcheck-hook ; \
     apk del git ; \
