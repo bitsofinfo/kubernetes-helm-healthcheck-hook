@@ -23,10 +23,22 @@
   # OPTIONAL:  you can also customize the body to send (on POSTS, PUTS, PATCHES) etc
   body: >
     <xml>test</xml>
+
   # OPTIONAL: By default we look for 200
   # otherwise you can control what constitutes the check being "healthy"
+  # NOTE; you can also set a "is_not_healthy" see example farther down
   is_healthy:
-    response_codes: [200] # one or more response codes that = healthy, ANY must match
+
+    # one or more response codes that = healthy, ANY must match
+    response_codes: [200]
+
+    # OPTIONAL: For unique cases, particurally only relevant for 'is_healthy' use-cases
+    # such as validating a endpoint DOES NOT EXIST, i.e. perhaps validating
+    # automated dns management has removed the name you are testing
+    # (i.e. in a post-delete situation). Ignored if scoped under 'is_not_healthy'
+    # as any exception IS immediately a failure on its own already.
+    #error_msg_reasons: ["Name does not resolve"]
+
     # body evaluator interprets the response body.
     # there are 2 types 'contains' or 'jinja2'
     body_evaluator:
@@ -49,6 +61,7 @@
       #type: "contains" # the 'contains' evaluator does a simple string match
       #value: "\"status\":200"
 
+
   # timeout for a response
   timeout: 5
   # nunber of retries
@@ -66,7 +79,9 @@
   method: "GET"
   timeout: 5
   retries: 3
-  is_healthy: # you can also do 'is_not_healthy' as an inverse alternative (see example below)
+  # you can also do 'is_not_healthy' as an
+  # inverse alternative (see example farther below)
+  is_healthy:
     response_codes: [500]
     body_evaluator: # body evaluator interprets the response body.
       type: "contains" # the 'contains' evaluator does a simple string match
@@ -85,7 +100,9 @@
   method: "GET"
   timeout: 5
   retries: 3
-  is_not_healthy: # is_not_healthy only supports response_codes as of now and take precedence over is_healthy
+   # is_not_healthy ONLY supports `response_codes`
+   # as of now and TAKES PRECENDECE over is_healthy
+  is_not_healthy:
     response_codes: [200]
 
 - path: "/post"

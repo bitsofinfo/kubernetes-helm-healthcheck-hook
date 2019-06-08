@@ -290,6 +290,7 @@ def execServiceCheck(config):
             except Exception as e:
                 dns_lookup_result = str(sys.exc_info()[:2])
 
+
             # do the request
             try:
                 start = datetime.datetime.now()
@@ -308,9 +309,23 @@ def execServiceCheck(config):
                             attempt_count,
                             dns_lookup_result)
 
+
+
+            # if response NOT successful, lets check if an error
+            # message if its in list of 'is_healthy.error_msg_reasons'
+            # will will invert the result
+            if not hc['result']['success'] and hc['result']['error']:
+                if 'error_msg_reasons' in hc['is_healthy']:
+                    for error_reason in hc['is_healthy']['error_msg_reasons']:
+                        if error_reason.lower() in hc['result']['error'].lower():
+                            logging.debug("processResponse() HTTP request failed w/ error: '" + hc['result']['error'] + \
+                                "' However error reason is in 'is_healthy.error_msg_reasons'... changing result to success=True")
+                            hc['result']['success'] = True
+
+
             # if it was successful, exit loop
             if hc['result']['success']:
-                break
+                break;
 
 
         except Exception as e:
