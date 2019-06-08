@@ -193,6 +193,14 @@ def processResponse(check_def,
         hc['result']['distinct_failure_errors'] = distinct_failure_errors
 
 
+def isResultErrorActuallySuccess(hc):
+    if hc['result']['error'] and 'error_msg_reasons' in hc['is_healthy']:
+        for error_reason in hc['is_healthy']['error_msg_reasons']:
+            if error_reason.lower() in hc['result']['error'].lower():
+                logging.debug("isErrorMessageActuallySuccess() HTTP request failed w/ error: '" + hc['result']['error'] + \
+                    "' However error message is in 'is_healthy.error_msg_reasons' so result actually successful")
+                return True
+    return False
 
 def execServiceCheck(config):
 
@@ -314,13 +322,8 @@ def execServiceCheck(config):
             # if response NOT successful, lets check if an error
             # message if its in list of 'is_healthy.error_msg_reasons'
             # will will invert the result
-            if not hc['result']['success'] and hc['result']['error']:
-                if 'error_msg_reasons' in hc['is_healthy']:
-                    for error_reason in hc['is_healthy']['error_msg_reasons']:
-                        if error_reason.lower() in hc['result']['error'].lower():
-                            logging.debug("processResponse() HTTP request failed w/ error: '" + hc['result']['error'] + \
-                                "' However error reason is in 'is_healthy.error_msg_reasons'... changing result to success=True")
-                            hc['result']['success'] = True
+            if not hc['result']['success'] and isResultErrorActuallySuccess(hc):
+                hc['result']['success'] = True
 
 
             # if it was successful, exit loop
@@ -353,6 +356,11 @@ def execServiceCheck(config):
             hc['result']['attempts_failed'] = attempts_failed
             hc['result']['distinct_failure_codes'] = distinct_failure_codes
             hc['result']['distinct_failure_errors'] = distinct_failure_errors
+
+            # finally... lets invert the result if necessary...
+            if isResultErrorActuallySuccess(hc):
+                hc['result']['success'] = True
+
 
         # finally, sleep after every attempt IF configured to do so...
         finally:
