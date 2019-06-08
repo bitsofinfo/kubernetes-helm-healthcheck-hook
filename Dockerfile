@@ -1,11 +1,13 @@
 FROM python:3.7.3-alpine
 
+ARG GIT_TAG=master
+
 # install the checker under /usr/local/bin
 RUN apk update ; \
     apk upgrade ; \
     apk add git ; \
     echo $PATH ; \
-    git clone https://github.com/bitsofinfo/kubernetes-helm-healthcheck-hook.git ; \
+    git clone --branch ${GIT_TAG} https://github.com/bitsofinfo/kubernetes-helm-healthcheck-hook.git ; \
     cp /kubernetes-helm-healthcheck-hook/*.py /usr/local/bin/ ; \
     rm -rf /kubernetes-helm-healthcheck-hook ; \
     apk del git ; \
