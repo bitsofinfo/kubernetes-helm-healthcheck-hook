@@ -1,10 +1,13 @@
 #----------------------------------------------------
 # This file is consumed by the --slack-config-filename
 # argument. Here you define one or more alert configs
-# each separate alert identified another YAML array element
+# each separate alert identified another root
+# level YAML element
 #----------------------------------------------------
 
-- name: "Deployment Result"  # the name of the alert
+deploymentResult:  # the name of the alert
+
+  name: "Deployment Result"
 
   # OPTIONAL: Jinja2 template that if provided must return:
   # - 1 (alert will execute)
@@ -70,7 +73,8 @@
       ]
     }
 
-- name: "Failure only alert"  # the name of the alert
+failureOnlyAlert:
+  name: "Failure only alert"  # the name of the alert
   alert_condition: "{{ '1' if not overall_result else '0' }}" # here we fire only on failures
   webhook_url: https://hooks.slack.com/services/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
   template: >
