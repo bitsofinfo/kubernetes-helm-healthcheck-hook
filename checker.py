@@ -103,7 +103,7 @@ def processResponse(check_def,
     # what is "success"?!
     success_status_codes = [200]
     success_body_evaluator = None
-    if 'is_healthy' in hc and 'response_codes' in 'is_healthy':
+    if 'is_healthy' in hc and 'response_codes' in hc['is_healthy']:
         success_status_codes = hc['is_healthy']['response_codes']
         if 'body_evaluator' in hc['is_healthy']:
             success_body_evaluator = hc['is_healthy']['body_evaluator']

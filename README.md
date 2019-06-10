@@ -83,7 +83,7 @@ specify the `--extra-slack-context-props` argument which provides those values t
 alert jinja2 template in [example/slackconfig.yaml](example/slackconfig.yaml).
 ```
 docker run -v `pwd`/example:/configs \
-  bitsofinfo/kubernetes-helm-healthcheck-hook:latest checker.py \
+  bitsofinfo/kubernetes-helm-healthcheck-hook:0.1.17 checker.py \
   --target-root-url https://postman-echo.com \
   --any-check-fail-exit-code 1 \
   --checksdb-filename /configs/checksdb.yaml \
@@ -99,7 +99,7 @@ failed. It will also only send 1 alert (success only), because the 2nd alert con
 [example/checksdb.yaml](example/slackconfig.yaml) only fires when a check in in failed state.
 ```
 docker run -v `pwd`/example:/configs \
-  bitsofinfo/kubernetes-helm-healthcheck-hook:latest checker.py \
+  bitsofinfo/kubernetes-helm-healthcheck-hook:0.1.17 checker.py \
   --target-root-url https://postman-echo.com \
   --any-check-fail-exit-code 1 \
   --checksdb-filename /configs/checksdb.yaml \
