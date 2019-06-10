@@ -544,7 +544,7 @@ def execute(target_root_url, \
             with open(slack_config_filename) as f:
                 slack_alert_configs = yaml.load(f, Loader=yaml.FullLoader)
 
-            for slack_alert_config_key, slack_alert_config in slack_alert_configs:
+            for slack_alert_config_key, slack_alert_config in slack_alert_configs.items():
                 try:
 
                     logging.debug("Processing slack alert config: " + slack_alert_config_key)
