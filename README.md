@@ -78,12 +78,12 @@ cd kubernetes-helm-healthcheck-hook
 Lets process all the *checks* defined in [example/checksdb.yaml](example/checksdb.yaml)
 This will exit with a `1` because ONE of the checks fails (i.e. GET to `/status/500`),
 it also sends 2 alerts as defined in the [example/slackconfig.yaml](example/slackconfig.yaml)
-https://bitsofinfo.slack.com/messages/CE46Z3TJA/ to the `#bitsofinfo-dev` channel. We also
+https://bitsofinfo.slack.com/messages/CE46Z3TJA/ to the `#bitsofinfo-dev` channel ([self signup to channel](https://join.slack.com/t/bitsofinfo/shared_invite/enQtNjY1ODIzNTkyMDMyLTEzZGUwNzExOWYyMmZmMTQyYWZiYzJjYTJkNGI3MWMzNzQ3MTE2NzVhM2Q1ZjE4OGViYjA1NGY4MzdiZDg3ZWI)). We also
 specify the `--extra-slack-context-props` argument which provides those values to our slack
 alert jinja2 template in [example/slackconfig.yaml](example/slackconfig.yaml).
 ```
 docker run -v `pwd`/example:/configs \
-  bitsofinfo/kubernetes-helm-healthcheck-hook:0.1.17 checker.py \
+  bitsofinfo/kubernetes-helm-healthcheck-hook:latest checker.py \
   --target-root-url https://postman-echo.com \
   --any-check-fail-exit-code 1 \
   --checksdb-filename /configs/checksdb.yaml \
@@ -99,13 +99,13 @@ failed. It will also only send 1 alert (success only), because the 2nd alert con
 [example/checksdb.yaml](example/slackconfig.yaml) only fires when a check in in failed state.
 ```
 docker run -v `pwd`/example:/configs \
-  bitsofinfo/kubernetes-helm-healthcheck-hook:0.1.17 checker.py \
+  bitsofinfo/kubernetes-helm-healthcheck-hook:latest checker.py \
   --target-root-url https://postman-echo.com \
   --any-check-fail-exit-code 1 \
   --checksdb-filename /configs/checksdb.yaml \
   --slack-config-filename /configs/slackconfig.yaml \
   --tags-disqualifier fail \
-  --extra-slack-context-props key1=val,key2=val2,key3=x
+  --extra-slack-context-props key1=val,key2=val2,key3=x -v
 
 echo "Exit code was: $?"
 ```
