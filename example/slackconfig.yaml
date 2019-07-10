@@ -18,8 +18,8 @@ deploymentResult:  # the name of the alert
 
   # Leverages a webhook url.
   # Example hook posts to: https://bitsofinfo.slack.com/messages/CE46Z3TJA/
-  # the #bitsofinfo-dev channel
-  webhook_url: https://hooks.slack.com/services/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
+  # the #bitsofinfo-dev channel (this webhook is INTENTIONALLY PUBLIC for example purposes!)
+  webhook_url: https://hooks.slack.com/services/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
 
   # Jinja2 template that is provided a `context` object
   # who has a structure you can see in the below file:
