@@ -308,4 +308,7 @@ optional arguments:
                         that will be added to the 'context' object passed to
                         the Slack Alert jinja2 templates under the key
                         'extra_props'
+  -R, --verbose-debug-requests
+                        Verbosely debugs every request/response made to --log-
+                        file
 ```

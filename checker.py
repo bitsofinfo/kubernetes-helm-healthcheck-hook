@@ -92,7 +92,8 @@ def processResponse(check_def,
                     distinct_failure_codes,
                     distinct_failure_errors,
                     attempt_count,
-                    dns_lookup_result):
+                    dns_lookup_result,
+                    verbose_debug_requests):
 
     # hc/service_check (health check for short)
     hc = check_def
@@ -160,6 +161,11 @@ def processResponse(check_def,
                          "headers": response.getheaders(),
                          "dns":dns_lookup_result,
                          "attempts_failed":attempts_failed}
+
+        # log if verbose debug requests
+        if verbose_debug_requests:
+            logging.debug("processResponse() verbose_debug_requests:True " + json.dumps(hc))
+
         return
 
     # failed...
@@ -192,6 +198,10 @@ def processResponse(check_def,
         hc['result']['distinct_failure_codes'] = distinct_failure_codes
         hc['result']['distinct_failure_errors'] = distinct_failure_errors
 
+        # log if verbose debug requests
+        if verbose_debug_requests:
+          logging.debug("processResponse() verbose_debug_requests:True " + json.dumps(hc))
+
 
 def isResultErrorActuallySuccess(hc):
     if 'is_healthy' in hc and hc['result']['error'] and 'error_msg_reasons' in hc['is_healthy']:
@@ -205,6 +215,10 @@ def isResultErrorActuallySuccess(hc):
 def execServiceCheck(config):
 
     max_retries = config['max_retries']
+
+    verbose_debug_requests = False
+    if 'verbose_debug_requests' in config:
+        verbose_debug_requests = config['verbose_debug_requests']
 
     hc = config['check_def']
     sleep_seconds = int(config['sleep_seconds'])
@@ -298,6 +312,9 @@ def execServiceCheck(config):
             except Exception as e:
                 dns_lookup_result = str(sys.exc_info()[:2])
 
+            # log if verbose debug requests
+            if verbose_debug_requests:
+                logging.debug("execServiceCheck() verbose_debug_requests:True Checking: " + hc['url'] + " dns_lookup_result: " + dns_lookup_result)
 
             # do the request
             try:
@@ -315,7 +332,8 @@ def execServiceCheck(config):
                             distinct_failure_codes,
                             distinct_failure_errors,
                             attempt_count,
-                            dns_lookup_result)
+                            dns_lookup_result,
+                            verbose_debug_requests)
 
 
 
@@ -341,6 +359,10 @@ def execServiceCheck(config):
             attempt_entry = { "ms":ms,
                               "dns":dns_lookup_result,
                               "error":str(sys.exc_info()[:2])}
+
+            # log if verbose debug requests
+            if verbose_debug_requests:
+                logging.debug("execServiceCheck() exception: " + json.dumps(attempt_entry))
 
             distinct_failure_errors.append(attempt_entry['error'])
             distinct_failure_errors = dedup(distinct_failure_errors)
@@ -454,7 +476,8 @@ def execute(target_root_url, \
                 executable_service_checks.append({'target_root_url':target_root_url, \
                                                   'check_def':checkdef, \
                                                   'max_retries':max_retries, \
-                                                  'sleep_seconds':sleep_seconds})
+                                                  'sleep_seconds':sleep_seconds, \
+                                                  'verbose_debug_requests':all_args.verbose_debug_requests})
             else:
                 checkdef['result'] = { "success":True, \
                                       "ms":0, \
@@ -671,6 +694,8 @@ if __name__ == '__main__':
         help="Dumps a JSON debug output of the jinja2 object passed to the Slack jinja2 template")
     parser.add_argument('-e', '--extra-slack-context-props', dest="extra_slack_context_props", default=None, \
         help="Optional comma delimited of key=value,key2=value pairs that will be added to the 'context' object passed to the Slack Alert jinja2 templates under the key 'extra_props'")
+    parser.add_argument('-R', '--verbose-debug-requests', action='store_true', default=False, \
+        help="Verbosely debugs every request/response made to --log-file")
 
 
     args = parser.parse_args()
