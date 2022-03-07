@@ -96,7 +96,7 @@ echo "Exit code was: $?"
 Now lets process all the *checks* defined in [example/checksdb.yaml](example/checksdb.yaml)
 EXCEPT those tagged with `fail`. This will exit with a `0` because none of the evaluated checks
 failed. It will also only send 1 alert (success only), because the 2nd alert configured in
-[example/checksdb.yaml](example/slackconfig.yaml) only fires when a check in in failed state.
+[example/checksdb.yaml](example/slackconfig.yaml) only fires when a check is in failed state.
 ```
 docker run -v `pwd`/example:/configs \
   bitsofinfo/kubernetes-helm-healthcheck-hook:latest checker.py \
